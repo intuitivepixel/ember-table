@@ -1,4 +1,4 @@
-App.EmberTableResizableController = Ember.Controller.extend
+App.EmberTableAutoResizeController = Ember.Controller.extend
   numRows: 100
 
   columns: Ember.computed ->

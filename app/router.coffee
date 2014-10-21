@@ -13,12 +13,12 @@ App.Router.map ->
     @route 'dynamic-bars'
     @route 'editable'
     @route 'financial'
+    @route 'auto-resize'
     @route 'fluid'
     @route 'horizon'
     @route 'simple'
     @route 'sparkline'
     @route 'community-examples'
-    @route 'resizable'
 
 App.IndexRoute = Ember.Route.extend
   redirect: ->
