@@ -226,8 +226,14 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
 
   # `event` here is a jQuery event
   onColumnResize: (event, ui) ->
-    @get('column').resize(ui.size.width)
-    @set 'controller.columnsFillTable', no
+    if @get 'controller.fluid'
+      diff = @get('column.width') - ui.size.width
+      @get('column').resize(ui.size.width)
+      @get('column.nextColumn').resize(@get('column.nextColumn.width') + diff)
+      console.log(diff + " " + event.type)
+    else
+      @get('column').resize(ui.size.width)
+      @set 'controller.columnsFillTable', no
     @elementSizeDidChange()
 
     # Trigger the table resize (and redraw of layout) when resizing is done

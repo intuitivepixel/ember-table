@@ -679,11 +679,13 @@ Ember.Table.ColumnDefinition = Ember.Object.extend({
     return Ember.get(row, path);
   },
   setCellContent: Ember.K,
+  fluid: false,
   width: Ember.computed.oneWay('savedWidth'),
   resize: function(width) {
     this.set('savedWidth', width);
     return this.set('width', width);
-  }
+  },
+  nextColumn: null
 });
 
 
@@ -915,8 +917,16 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
     }
   },
   onColumnResize: function(event, ui) {
-    this.get('column').resize(ui.size.width);
-    this.set('controller.columnsFillTable', false);
+    var diff;
+    if (this.get('controller.fluid')) {
+      diff = this.get('column.width') - ui.size.width;
+      this.get('column').resize(ui.size.width);
+      this.get('column.nextColumn').resize(this.get('column.nextColumn.width') + diff);
+      console.log(diff + " " + event.type);
+    } else {
+      this.get('column').resize(ui.size.width);
+      this.set('controller.columnsFillTable', false);
+    }
     this.elementSizeDidChange();
     if (event.type === 'resizestop') {
       this.get('controller').elementSizeDidChange();
@@ -1157,7 +1167,14 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     return columns;
   }).property('columns.@each', 'numFixedColumns'),
   prepareTableColumns: function(columns) {
-    return columns.setEach('controller', this);
+    var col, i, _i, _len, _results;
+    columns.setEach('controller', this);
+    _results = [];
+    for (i = _i = 0, _len = columns.length; _i < _len; i = ++_i) {
+      col = columns[i];
+      _results.push(col.set('nextColumn', columns.objectAt(i + 1)));
+    }
+    return _results;
   },
   didInsertElement: function() {
     this._super();

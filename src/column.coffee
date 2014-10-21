@@ -64,6 +64,9 @@ Ember.Table.ColumnDefinition = Ember.Object.extend
   # the row value.
   setCellContent: Ember.K
 
+  # TODO: Change to a more meaningful phrase and document.
+  fluid: no
+
   # ---------------------------------------------------------------------------
   # Internal properties
   # ---------------------------------------------------------------------------
@@ -78,3 +81,7 @@ Ember.Table.ColumnDefinition = Ember.Object.extend
   resize: (width) ->
     @set 'savedWidth', width
     @set 'width', width
+
+  # Set when the table is initialized. Used to resize columns by stealing
+  # width from the next column to the right.
+  nextColumn: null

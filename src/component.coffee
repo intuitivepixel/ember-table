@@ -150,6 +150,9 @@ Ember.AddeparMixins.ResizeHandlerMixin,
 
   prepareTableColumns: (columns) ->
     columns.setEach 'controller', this
+    for col, i in columns
+      col.set('nextColumn', columns.objectAt(i + 1))
+    # TODO: If fluid mode, set last column to can't resize
 
   # ---------------------------------------------------------------------------
   # View concerns
