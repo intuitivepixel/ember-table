@@ -15,7 +15,7 @@ Ember.Table.ColumnDefinition = Ember.Object.extend
 
   # Minimum column width. Affects both manual resizing and automatic resizing
   # (in `forceFillColumns` mode).
-  minWidth: undefined
+  minWidth: 25
 
   # Maximum column width. Affects both manual resizing and automatic resizing
   # (in `forceFillColumns` mode).
@@ -85,3 +85,12 @@ Ember.Table.ColumnDefinition = Ember.Object.extend
   # Set when the table is initialized. Used to resize columns by stealing
   # width from the next column to the right.
   nextColumn: null
+  prevColumn: null
+
+  isAtMinWidth: Ember.computed ->
+    @get('width') is @get('minWidth')
+  .property 'width', 'minWidth'
+
+  isAtMaxWidth: Ember.computed ->
+    @get('width') is @get('maxWidth')
+  .property 'width', 'maxWidth'

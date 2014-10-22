@@ -17,6 +17,7 @@ App.EmberTableFluidController = Ember.Controller.extend
     lowColumn = Ember.Table.ColumnDefinition.create
       savedWidth: 100
       headerCellName: 'Low'
+      isResizable: no
       getCellContent: (row) -> row.get('low').toFixed(2)
     closeColumn = Ember.Table.ColumnDefinition.create
       savedWidth: 100

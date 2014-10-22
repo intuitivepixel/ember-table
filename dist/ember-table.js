@@ -661,7 +661,7 @@ Ember.Table.ShowHorizontalScrollMixin = Ember.Mixin.create({
 Ember.Table.ColumnDefinition = Ember.Object.extend({
   headerCellName: void 0,
   contentPath: void 0,
-  minWidth: void 0,
+  minWidth: 25,
   maxWidth: void 0,
   savedWidth: 150,
   isResizable: true,
@@ -685,7 +685,14 @@ Ember.Table.ColumnDefinition = Ember.Object.extend({
     this.set('savedWidth', width);
     return this.set('width', width);
   },
-  nextColumn: null
+  nextColumn: null,
+  prevColumn: null,
+  isAtMinWidth: Ember.computed(function() {
+    return this.get('width') === this.get('minWidth');
+  }).property('width', 'minWidth'),
+  isAtMaxWidth: Ember.computed(function() {
+    return this.get('width') === this.get('maxWidth');
+  }).property('width', 'maxWidth')
 });
 
 
@@ -898,17 +905,65 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
   height: Ember.computed(function() {
     return this.get('controller._headerHeight');
   }).property('controller._headerHeight'),
+  nextResizableColumn: Ember.computed(function() {
+    var col;
+    col = this.get('column.nextColumn');
+    while (col) {
+      if (col.get('isResizable')) {
+        return col;
+      }
+      col = col.get('nextColumn');
+    }
+    return null;
+  }).property('controller.columns.[]', 'controller.columns.@each.isResizable'),
+  prevResizableColumn: Ember.computed(function() {
+    var col;
+    col = this.get('column.prevColumn');
+    while (col) {
+      if (col.get('isResizable')) {
+        return col;
+      }
+      col = col.get('prevColumn');
+    }
+    return null;
+  }).property('controller.columns.[]', 'controller.columns.@each.isResizable'),
+  effectiveMinWidth: Ember.computed(function() {
+    var nextColumnMaxDiff;
+    nextColumnMaxDiff = this.get('nextResizableColumn.maxWidth') - this.get('nextResizableColumn.width');
+    if (this.get('column.minWidth') && nextColumnMaxDiff) {
+      return Math.min(this.get('column.minWidth'), this.get('column.width') - nextColumnMaxDiff);
+    } else if (this.get('column.minWidth')) {
+      return this.get('column.minWidth');
+    } else {
+      return this.get('column.width') - nextColumnMaxDiff;
+    }
+  }).property('column.width', 'column.minWidth', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'),
+  effectiveMaxWidth: Ember.computed(function() {
+    var nextColumnMaxDiff;
+    nextColumnMaxDiff = this.get('nextResizableColumn.width') - this.get('nextResizableColumn.minWidth');
+    if (this.get('column.maxWidth') && !Ember.isNone(nextColumnMaxDiff)) {
+      return Math.min(this.get('column.maxWidth'), this.get('column.width') + nextColumnMaxDiff);
+    } else if (this.get('column.maxWidth')) {
+      return this.get('column.maxWidth');
+    } else {
+      return this.get('column.width') + nextColumnMaxDiff;
+    }
+  }).property('column.width', 'column.maxWidth', 'nextResizableColumn.width', 'nextResizableColumn.minWidth'),
   resizableOption: Ember.computed(function() {
+    console.log(this.get('column.headerCellName') + ': ' + this.get('effectiveMinWidth') + ', ' + this.get('effectiveMaxWidth'));
+    if ((this.get('column.headerCellName') === 'Open') && !this.get('effectiveMaxWidth')) {
+      debugger;
+    }
     return {
       handles: 'e',
       minHeight: 40,
-      minWidth: this.get('column.minWidth') || 10,
-      maxWidth: this.get('column.maxWidth') || void 0,
+      minWidth: this.get('effectiveMinWidth'),
+      maxWidth: this.get('effectiveMaxWidth'),
       grid: this.get('column.snapGrid'),
       resize: jQuery.proxy(this.onColumnResize, this),
-      stop: jQuery.proxy(this.onColumnResize, this)
+      stop: jQuery.proxy(this.onColumnResizeStop, this)
     };
-  }),
+  }).property('effectiveMinWidth', 'effectiveMaxWidth'),
   didInsertElement: function() {
     this.elementSizeDidChange();
     if (this.get('column.isResizable')) {
@@ -916,13 +971,19 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
       this._resizableWidget = this.$().resizable('widget');
     }
   },
+  resizableObserver: Ember.observer(function() {
+    console.log('resizableObserver' + this.get('column.headerCellName'));
+    if (this.get('column.isResizable')) {
+      this.$().resizable(this.get('resizableOption'));
+      return this._resizableWidget = this.$().resizable('widget');
+    }
+  }, 'column.isResizable', 'resizableOption'),
   onColumnResize: function(event, ui) {
     var diff;
     if (this.get('controller.fluid')) {
       diff = this.get('column.width') - ui.size.width;
       this.get('column').resize(ui.size.width);
       this.get('column.nextColumn').resize(this.get('column.nextColumn.width') + diff);
-      console.log(diff + " " + event.type);
     } else {
       this.get('column').resize(ui.size.width);
       this.set('controller.columnsFillTable', false);
@@ -1172,7 +1233,8 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     _results = [];
     for (i = _i = 0, _len = columns.length; _i < _len; i = ++_i) {
       col = columns[i];
-      _results.push(col.set('nextColumn', columns.objectAt(i + 1)));
+      col.set('nextColumn', columns.objectAt(i + 1));
+      _results.push(col.set('prevColumn', columns.objectAt(i - 1)));
     }
     return _results;
   },
