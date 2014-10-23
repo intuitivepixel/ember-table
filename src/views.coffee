@@ -210,7 +210,6 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
   nextResizableColumn: Ember.computed.alias 'column.nextResizableColumn'
 
   effectiveMinWidth: Ember.computed ->
-    console.log 'new effective min'
     nextColumnMaxDiff = @get('nextResizableColumn.maxWidth') - @get('nextResizableColumn.width')
     if @get('column.minWidth') and nextColumnMaxDiff
       return Math.min(@get('column.minWidth'), @get('column.width') - nextColumnMaxDiff)
@@ -221,7 +220,6 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
   .property 'column.width', 'column.minWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'
 
   effectiveMaxWidth: Ember.computed ->
-    console.log 'new effective max'
     nextColumnMaxDiff = @get('nextResizableColumn.width') - @get('nextResizableColumn.minWidth')
     if @get('column.maxWidth') and not Ember.isNone(nextColumnMaxDiff)
       return Math.min(@get('column.maxWidth'), @get('column.width') + nextColumnMaxDiff)
@@ -233,9 +231,6 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
 
   # jQuery UI resizable option
   resizableOption: Ember.computed ->
-    console.log @get('column.headerCellName') + ': ' + @get('effectiveMinWidth') + ', ' + @get('effectiveMaxWidth')
-    if (@get('column.headerCellName') is 'Open') and not @get('effectiveMaxWidth')
-      debugger
     handles: 'e'
     minHeight: 40
     minWidth: @get('effectiveMinWidth') or 10
@@ -253,7 +248,6 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
       return
 
   resizableObserver: Ember.observer ->
-    console.log 'resizableObserver' + @get('column.headerCellName')
     if @get('column.isResizable')
       @$().resizable(@get('resizableOption'))
       @_resizableWidget = @$().resizable('widget')

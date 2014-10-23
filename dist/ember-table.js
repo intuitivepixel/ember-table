@@ -908,7 +908,6 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
   nextResizableColumn: Ember.computed.alias('column.nextResizableColumn'),
   effectiveMinWidth: Ember.computed(function() {
     var nextColumnMaxDiff;
-    console.log('new effective min');
     nextColumnMaxDiff = this.get('nextResizableColumn.maxWidth') - this.get('nextResizableColumn.width');
     if (this.get('column.minWidth') && nextColumnMaxDiff) {
       return Math.min(this.get('column.minWidth'), this.get('column.width') - nextColumnMaxDiff);
@@ -920,7 +919,6 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
   }).property('column.width', 'column.minWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'),
   effectiveMaxWidth: Ember.computed(function() {
     var nextColumnMaxDiff;
-    console.log('new effective max');
     nextColumnMaxDiff = this.get('nextResizableColumn.width') - this.get('nextResizableColumn.minWidth');
     if (this.get('column.maxWidth') && !Ember.isNone(nextColumnMaxDiff)) {
       return Math.min(this.get('column.maxWidth'), this.get('column.width') + nextColumnMaxDiff);
@@ -931,10 +929,6 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
     }
   }).property('column.width', 'column.maxWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.minWidth'),
   resizableOption: Ember.computed(function() {
-    console.log(this.get('column.headerCellName') + ': ' + this.get('effectiveMinWidth') + ', ' + this.get('effectiveMaxWidth'));
-    if ((this.get('column.headerCellName') === 'Open') && !this.get('effectiveMaxWidth')) {
-      debugger;
-    }
     return {
       handles: 'e',
       minHeight: 40,
@@ -953,7 +947,6 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
     }
   },
   resizableObserver: Ember.observer(function() {
-    console.log('resizableObserver' + this.get('column.headerCellName'));
     if (this.get('column.isResizable')) {
       this.$().resizable(this.get('resizableOption'));
       return this._resizableWidget = this.$().resizable('widget');
@@ -1169,8 +1162,7 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     columns = this.get('tableColumns');
     columns.removeObject(column);
     columns.insertAt(newIndex, column);
-    this.prepareTableColumns(columns);
-    return console.log('column sort duh');
+    return this.prepareTableColumns();
   },
   bodyContent: Ember.computed(function() {
     return Ember.Table.RowArrayController.create({
@@ -1196,7 +1188,7 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     }
     numFixedColumns = this.get('numFixedColumns') || 0;
     columns = columns.slice(0, numFixedColumns) || [];
-    this.prepareTableColumns(columns);
+    this.prepareTableColumns();
     return columns;
   }).property('columns.@each', 'numFixedColumns'),
   tableColumns: Ember.computed(function() {
@@ -1207,12 +1199,12 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     }
     numFixedColumns = this.get('numFixedColumns') || 0;
     columns = columns.slice(numFixedColumns, columns.get('length')) || [];
-    this.prepareTableColumns(columns);
+    this.prepareTableColumns();
     return columns;
   }).property('columns.@each', 'numFixedColumns'),
-  prepareTableColumns: function(columns) {
-    var col, i, _i, _len, _results;
-    console.log('preparing table columns.');
+  prepareTableColumns: function() {
+    var col, columns, i, _i, _len, _results;
+    columns = this.get('columns') || Ember.A();
     columns.setEach('controller', this);
     _results = [];
     for (i = _i = 0, _len = columns.length; _i < _len; i = ++_i) {

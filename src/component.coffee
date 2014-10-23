@@ -114,8 +114,7 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     columns  = @get 'tableColumns'
     columns.removeObject column
     columns.insertAt newIndex, column
-    @prepareTableColumns(columns)
-    console.log 'column sort duh'
+    @prepareTableColumns()
 
   # An array of Ember.Table.Row computed based on `content`
   bodyContent: Ember.computed ->
@@ -137,7 +136,7 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     return Ember.A() unless columns
     numFixedColumns = @get('numFixedColumns') or 0
     columns = columns.slice(0, numFixedColumns) or []
-    @prepareTableColumns(columns)
+    @prepareTableColumns()
     columns
   .property 'columns.@each', 'numFixedColumns'
 
@@ -146,17 +145,17 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     return Ember.A() unless columns
     numFixedColumns = @get('numFixedColumns') or 0
     columns = columns.slice(numFixedColumns, columns.get('length')) or []
-    @prepareTableColumns(columns)
+    @prepareTableColumns()
     columns
   .property 'columns.@each', 'numFixedColumns'
 
   # TODO(azirbel): Need to run this if any column changes isResizable
-  prepareTableColumns: (columns) ->
-    console.log 'preparing table columns.'
+  # TODO: If fluid mode, set last column to can't resize
+  prepareTableColumns: ->
+    columns = @get('columns') or Ember.A()
     columns.setEach 'controller', this
     for col, i in columns
       col.set('nextResizableColumn', @getNextResizableColumn(columns, i))
-    # TODO: If fluid mode, set last column to can't resize
 
   getNextResizableColumn: (columns, index) ->
     while index < columns.length
