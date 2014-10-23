@@ -905,30 +905,10 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
   height: Ember.computed(function() {
     return this.get('controller._headerHeight');
   }).property('controller._headerHeight'),
-  nextResizableColumn: Ember.computed(function() {
-    var col;
-    col = this.get('column.nextColumn');
-    while (col) {
-      if (col.get('isResizable')) {
-        return col;
-      }
-      col = col.get('nextColumn');
-    }
-    return null;
-  }).property('controller.columns.[]', 'controller.columns.@each.isResizable'),
-  prevResizableColumn: Ember.computed(function() {
-    var col;
-    col = this.get('column.prevColumn');
-    while (col) {
-      if (col.get('isResizable')) {
-        return col;
-      }
-      col = col.get('prevColumn');
-    }
-    return null;
-  }).property('controller.columns.[]', 'controller.columns.@each.isResizable'),
+  nextResizableColumn: Ember.computed.alias('column.nextResizableColumn'),
   effectiveMinWidth: Ember.computed(function() {
     var nextColumnMaxDiff;
+    console.log('new effective min');
     nextColumnMaxDiff = this.get('nextResizableColumn.maxWidth') - this.get('nextResizableColumn.width');
     if (this.get('column.minWidth') && nextColumnMaxDiff) {
       return Math.min(this.get('column.minWidth'), this.get('column.width') - nextColumnMaxDiff);
@@ -937,9 +917,10 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
     } else {
       return this.get('column.width') - nextColumnMaxDiff;
     }
-  }).property('column.width', 'column.minWidth', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'),
+  }).property('column.width', 'column.minWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'),
   effectiveMaxWidth: Ember.computed(function() {
     var nextColumnMaxDiff;
+    console.log('new effective max');
     nextColumnMaxDiff = this.get('nextResizableColumn.width') - this.get('nextResizableColumn.minWidth');
     if (this.get('column.maxWidth') && !Ember.isNone(nextColumnMaxDiff)) {
       return Math.min(this.get('column.maxWidth'), this.get('column.width') + nextColumnMaxDiff);
@@ -948,7 +929,7 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
     } else {
       return this.get('column.width') + nextColumnMaxDiff;
     }
-  }).property('column.width', 'column.maxWidth', 'nextResizableColumn.width', 'nextResizableColumn.minWidth'),
+  }).property('column.width', 'column.maxWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.minWidth'),
   resizableOption: Ember.computed(function() {
     console.log(this.get('column.headerCellName') + ': ' + this.get('effectiveMinWidth') + ', ' + this.get('effectiveMaxWidth'));
     if ((this.get('column.headerCellName') === 'Open') && !this.get('effectiveMaxWidth')) {
@@ -957,7 +938,7 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
     return {
       handles: 'e',
       minHeight: 40,
-      minWidth: this.get('effectiveMinWidth'),
+      minWidth: this.get('effectiveMinWidth') || 10,
       maxWidth: this.get('effectiveMaxWidth'),
       grid: this.get('column.snapGrid'),
       resize: jQuery.proxy(this.onColumnResize, this),
@@ -983,7 +964,7 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
     if (this.get('controller.fluid')) {
       diff = this.get('column.width') - ui.size.width;
       this.get('column').resize(ui.size.width);
-      this.get('column.nextColumn').resize(this.get('column.nextColumn.width') + diff);
+      this.get('nextResizableColumn').resize(this.get('nextResizableColumn.width') + diff);
     } else {
       this.get('column').resize(ui.size.width);
       this.set('controller.columnsFillTable', false);
@@ -1187,7 +1168,9 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
     var columns;
     columns = this.get('tableColumns');
     columns.removeObject(column);
-    return columns.insertAt(newIndex, column);
+    columns.insertAt(newIndex, column);
+    this.prepareTableColumns(columns);
+    return console.log('column sort duh');
   },
   bodyContent: Ember.computed(function() {
     return Ember.Table.RowArrayController.create({
@@ -1229,14 +1212,25 @@ Ember.Table.EmberTableComponent = Ember.Component.extend(Ember.AddeparMixins.Sty
   }).property('columns.@each', 'numFixedColumns'),
   prepareTableColumns: function(columns) {
     var col, i, _i, _len, _results;
+    console.log('preparing table columns.');
     columns.setEach('controller', this);
     _results = [];
     for (i = _i = 0, _len = columns.length; _i < _len; i = ++_i) {
       col = columns[i];
-      col.set('nextColumn', columns.objectAt(i + 1));
-      _results.push(col.set('prevColumn', columns.objectAt(i - 1)));
+      _results.push(col.set('nextResizableColumn', this.getNextResizableColumn(columns, i)));
     }
     return _results;
+  },
+  getNextResizableColumn: function(columns, index) {
+    var column;
+    while (index < columns.length) {
+      index += 1;
+      column = columns.objectAt(index);
+      if (column != null ? column.get('isResizable') : void 0) {
+        return column;
+      }
+    }
+    return null;
   },
   didInsertElement: function() {
     this._super();

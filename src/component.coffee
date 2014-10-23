@@ -114,6 +114,8 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     columns  = @get 'tableColumns'
     columns.removeObject column
     columns.insertAt newIndex, column
+    @prepareTableColumns(columns)
+    console.log 'column sort duh'
 
   # An array of Ember.Table.Row computed based on `content`
   bodyContent: Ember.computed ->
@@ -148,12 +150,20 @@ Ember.AddeparMixins.ResizeHandlerMixin,
     columns
   .property 'columns.@each', 'numFixedColumns'
 
+  # TODO(azirbel): Need to run this if any column changes isResizable
   prepareTableColumns: (columns) ->
+    console.log 'preparing table columns.'
     columns.setEach 'controller', this
     for col, i in columns
-      col.set('nextColumn', columns.objectAt(i + 1))
-      col.set('prevColumn', columns.objectAt(i - 1))
+      col.set('nextResizableColumn', @getNextResizableColumn(columns, i))
     # TODO: If fluid mode, set last column to can't resize
+
+  getNextResizableColumn: (columns, index) ->
+    while index < columns.length
+      index += 1
+      column = columns.objectAt(index)
+      return column if column?.get('isResizable')
+    null
 
   # ---------------------------------------------------------------------------
   # View concerns
