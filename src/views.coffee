@@ -212,32 +212,35 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
   effectiveMinWidth: Ember.computed ->
     nextColumnMaxDiff = @get('nextResizableColumn.maxWidth') - @get('nextResizableColumn.width')
     if @get('column.minWidth') and nextColumnMaxDiff
-      return Math.min(@get('column.minWidth'), @get('column.width') - nextColumnMaxDiff)
+      return Math.min(@get('column.minWidth'), @get('width') - nextColumnMaxDiff)
     else if @get('column.minWidth')
       return @get('column.minWidth')
     else
-      return @get('column.width') - nextColumnMaxDiff
-  .property 'column.width', 'column.minWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'
+      return @get('width') - nextColumnMaxDiff
+  .property 'width', 'column.minWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'
 
   effectiveMaxWidth: Ember.computed ->
     nextColumnMaxDiff = @get('nextResizableColumn.width') - @get('nextResizableColumn.minWidth')
     if @get('column.maxWidth') and not Ember.isNone(nextColumnMaxDiff)
-      return Math.min(@get('column.maxWidth'), @get('column.width') + nextColumnMaxDiff)
+      return Math.min(@get('column.maxWidth'), @get('width') + nextColumnMaxDiff)
     else if @get('column.maxWidth')
       return @get('column.maxWidth')
     else
-      return @get('column.width') + nextColumnMaxDiff
-  .property 'column.width', 'column.maxWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.minWidth'
+      return @get('width') + nextColumnMaxDiff
+  .property 'width', 'column.maxWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.minWidth'
 
   # jQuery UI resizable option
   resizableOption: Ember.computed ->
+    console.log 'width: ' + @get('width') + '(' + @get('width').constructor.name + ') effective ' + @get('column.headerCellName') + ': ' + @get('effectiveMinWidth') + ', max: ' + @get('effectiveMaxWidth')
+    if @get('effectiveMaxWidth') > 1000
+      debugger
     handles: 'e'
     minHeight: 40
     minWidth: @get('effectiveMinWidth') or 10
-    maxWidth: @get 'effectiveMaxWidth'
+    maxWidth: @get('effectiveMaxWidth')
     grid:     @get('column.snapGrid')
     resize: jQuery.proxy(@onColumnResize, this)
-    stop: jQuery.proxy(@onColumnResizeStop, this)
+    stop:   jQuery.proxy(@onColumnResize, this)
   .property 'effectiveMinWidth', 'effectiveMaxWidth'
 
   didInsertElement: ->
@@ -256,13 +259,20 @@ Ember.View.extend Ember.AddeparMixins.StyleBindingsMixin,
   # `event` here is a jQuery event
   onColumnResize: (event, ui) ->
     if @get 'controller.fluid'
-      diff = @get('column.width') - ui.size.width
+      diff = @get('width') - ui.size.width
       @get('column').resize(ui.size.width)
       @get('nextResizableColumn').resize(@get('nextResizableColumn.width') + diff)
     else
       @get('column').resize(ui.size.width)
       @set 'controller.columnsFillTable', no
+
+    if @get('width').constructor.name is 'String'
+      debugger
+
     @elementSizeDidChange()
+
+    if @get('width').constructor.name is 'String'
+      debugger
 
     # Trigger the table resize (and redraw of layout) when resizing is done
     if event.type is 'resizestop'

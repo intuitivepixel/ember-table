@@ -1,25 +1,27 @@
 App.EmberTableFluidController = Ember.Controller.extend
   numRows: 100
 
+  showTable: yes
+
   columns: Ember.computed ->
-    dateColumn = Ember.Table.ColumnDefinition.create
+    dateColumn = App.FluidColumnDefinition.create
       textAlign: 'text-align-left'
       headerCellName: 'Date'
-      canAutoResize: yes
       getCellContent: (row) -> row.get('date').toDateString();
-    openColumn = Ember.Table.ColumnDefinition.create
+      defaultMinWidth: 200
+    openColumn = App.FluidColumnDefinition.create
       headerCellName: 'Open'
       getCellContent: (row) -> row.get('open').toFixed(2)
-    highColumn = Ember.Table.ColumnDefinition.create
+    highColumn = App.FluidColumnDefinition.create
       savedWidth: 100
       headerCellName: 'High'
       getCellContent: (row) -> row.get('high').toFixed(2)
-    lowColumn = Ember.Table.ColumnDefinition.create
+    lowColumn = App.FluidColumnDefinition.create
       savedWidth: 100
       headerCellName: 'Low'
       isResizable: no
       getCellContent: (row) -> row.get('low').toFixed(2)
-    closeColumn = Ember.Table.ColumnDefinition.create
+    closeColumn = App.FluidColumnDefinition.create
       savedWidth: 100
       headerCellName: 'Close'
       getCellContent: (row) -> row.get('close').toFixed(2)
@@ -36,3 +38,31 @@ App.EmberTableFluidController = Ember.Controller.extend
       close: Math.random() * 100 - 50
       volume: Math.random() * 1000000
   .property 'numRows'
+
+  actions:
+    refreshTable: ->
+      @set 'showTable', no
+      console.log 'refresh'
+      Ember.run.next =>
+        @set 'showTable', yes
+
+
+App.FluidColumnDefinition = Ember.Table.ColumnDefinition.extend
+  minWidth: 25
+  minWidthValue: Ember.computed (key, value) ->
+    if arguments.length is 1
+      return @get('minWidth')
+    else
+      @set('minWidth', parseInt(value))
+      return @get('minWidth')
+  .property 'minWidth'
+
+
+# Add some observers so configuration changes will work properly
+#App.FluidTableComponent = Ember.Table.EmberTableComponent.extend
+  #configurationObserver: Ember.observer ->
+    #console.log 'configuration changed!'
+    #@updateLayout()
+    #@doForceFillColumns()
+    #@rerender()
+  #, 'columns.@each.minWidth'

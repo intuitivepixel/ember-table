@@ -3,24 +3,60 @@
   <h1>Ember Table <small>Fluid Mode</small></h1>
 
   <div class="row">
-    <div class="col-md-12">
-      <div class="example-container">
-        <div class="ember-table-example-container">
-          {{table-component
-            hasFooter=false
-            fluid=true
-            columnsBinding="columns"
-            contentBinding="content"
-          }}
+    <div>
+      <div class="configuration-container">
+        <strong>Configure Demo</strong>
+        <table class="table table-bordered table-condensed">
+          <tbody>
+            <tr>
+              <th>Column</th>
+              <th>isResizable</th>
+              <th>canAutoResize</th>
+              <th>width</th>
+              <th>minWidth</th>
+              <th>maxWidth</th>
+            </tr>
+            {{#each columns}}
+              <tr>
+                <td>{{headerCellName}}</td>
+                <td>{{isResizable}}</td>
+                <td>{{canAutoResize}}</td>
+                <td>{{width}}</td>
+                <td>{{input value=minWidthValue type="number" min="1"}}</td>
+                <td>{{input value=maxWidthValue type="number" min="1"}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+        <div>
+          <button {{action 'refreshTable'}}>Refresh Table</button>
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="row">
+    {{#if showTable}}
+      <div class="col-md-12">
+        <div class="example-container">
+          <div class="ember-table-example-container">
+            {{table-component
+              hasFooter=false
+              fluid=true
+              columnsBinding="columns"
+              contentBinding="content"
+            }}
+          </div>
+        </div>
+      </div>
+    {{/if}}
 
     <div class="col-md-12 bumper-30">
       <h3>application.hbs</h3>
       <div class="highlight">
 <pre class="prettyprint lang-html">&#123;&#123;table-component
   hasFooter=false
+  fluid=true
   columnsBinding="columns"
   contentBinding="content"
 &#125;&#125;</pre>

@@ -910,25 +910,29 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
     var nextColumnMaxDiff;
     nextColumnMaxDiff = this.get('nextResizableColumn.maxWidth') - this.get('nextResizableColumn.width');
     if (this.get('column.minWidth') && nextColumnMaxDiff) {
-      return Math.min(this.get('column.minWidth'), this.get('column.width') - nextColumnMaxDiff);
+      return Math.min(this.get('column.minWidth'), this.get('width') - nextColumnMaxDiff);
     } else if (this.get('column.minWidth')) {
       return this.get('column.minWidth');
     } else {
-      return this.get('column.width') - nextColumnMaxDiff;
+      return this.get('width') - nextColumnMaxDiff;
     }
-  }).property('column.width', 'column.minWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'),
+  }).property('width', 'column.minWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.maxWidth'),
   effectiveMaxWidth: Ember.computed(function() {
     var nextColumnMaxDiff;
     nextColumnMaxDiff = this.get('nextResizableColumn.width') - this.get('nextResizableColumn.minWidth');
     if (this.get('column.maxWidth') && !Ember.isNone(nextColumnMaxDiff)) {
-      return Math.min(this.get('column.maxWidth'), this.get('column.width') + nextColumnMaxDiff);
+      return Math.min(this.get('column.maxWidth'), this.get('width') + nextColumnMaxDiff);
     } else if (this.get('column.maxWidth')) {
       return this.get('column.maxWidth');
     } else {
-      return this.get('column.width') + nextColumnMaxDiff;
+      return this.get('width') + nextColumnMaxDiff;
     }
-  }).property('column.width', 'column.maxWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.minWidth'),
+  }).property('width', 'column.maxWidth', 'nextResizableColumn', 'nextResizableColumn.width', 'nextResizableColumn.minWidth'),
   resizableOption: Ember.computed(function() {
+    console.log('width: ' + this.get('width') + '(' + this.get('width').constructor.name + ') effective ' + this.get('column.headerCellName') + ': ' + this.get('effectiveMinWidth') + ', max: ' + this.get('effectiveMaxWidth'));
+    if (this.get('effectiveMaxWidth') > 1000) {
+      debugger;
+    }
     return {
       handles: 'e',
       minHeight: 40,
@@ -936,7 +940,7 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
       maxWidth: this.get('effectiveMaxWidth'),
       grid: this.get('column.snapGrid'),
       resize: jQuery.proxy(this.onColumnResize, this),
-      stop: jQuery.proxy(this.onColumnResizeStop, this)
+      stop: jQuery.proxy(this.onColumnResize, this)
     };
   }).property('effectiveMinWidth', 'effectiveMaxWidth'),
   didInsertElement: function() {
@@ -955,14 +959,20 @@ Ember.Table.HeaderCell = Ember.View.extend(Ember.AddeparMixins.StyleBindingsMixi
   onColumnResize: function(event, ui) {
     var diff;
     if (this.get('controller.fluid')) {
-      diff = this.get('column.width') - ui.size.width;
+      diff = this.get('width') - ui.size.width;
       this.get('column').resize(ui.size.width);
       this.get('nextResizableColumn').resize(this.get('nextResizableColumn.width') + diff);
     } else {
       this.get('column').resize(ui.size.width);
       this.set('controller.columnsFillTable', false);
     }
+    if (this.get('width').constructor.name === 'String') {
+      debugger;
+    }
     this.elementSizeDidChange();
+    if (this.get('width').constructor.name === 'String') {
+      debugger;
+    }
     if (event.type === 'resizestop') {
       this.get('controller').elementSizeDidChange();
     }
